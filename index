@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Premium de Carnes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .category-chip {
+            transition: all 0.3s ease;
+        }
+        .category-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .category-chip.active {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            color: #fff;
+        }
+        .meat-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid;
+        }
+        .meat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .res { border-left-color: #ef4444; }
+        .cerdo { border-left-color: #ec4899; }
+        .pollo { border-left-color: #f59e0b; }
+        .cordero { border-left-color: #8b5cf6; }
+        .pescado { border-left-color: #3b82f6; }
+        .otro { border-left-color: #64748b; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navegación Sidebar -->
+    <div class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-10">
+        <div class="p-6 flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h1 class="text-xl font-semibold text-gray-800">MeatStock Pro</h1>
+        </div>
+        <nav class="mt-8 px-4 space-y-1">
+            <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                </svg>
+                Panel de Control
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 10.586V6z" clip-rule="evenodd" />
+                </svg>
+                Historial
+            </a>
+            <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+                Configuración
+            </a>
+        </nav>
+        <div class="absolute bottom-0 left-0 right-0 p-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-gray-200"></div>
+                <div>
+                    <p class="text-sm font-medium text-gray-800">Usuario Admin</p>
+                    <p class="text-xs text-gray-500">Administrador</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="ml-64">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-900">Inventario de Carnes</h2>
+                <div class="flex items-center space-x-4">
+                    <button id="new-meat-btn" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-md transition-all flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        Nuevo Producto
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido del Dashboard -->
+        <main class="max-w-7xl mx-auto px-6 py-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+                <div class="glass-card p-4 rounded-xl shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Stock Total</p>
+                    <p class="mt-1 text-2xl font-semibold"><span id="total-stock">0</span> kg</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Productos</p>
+                    <p class="mt-1 text-2xl font-semibold"><span id="total-products">0</span></p>
+                </div>
+                <div class="glass-card p-4 rounded-xl shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Ingresos (7d)</p>
+                    <p class="mt-1 text-2xl font-semibold text-green-600"><span id="total-income">0</span> kg</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Salidas (7d)</p>
+                    <p class="mt-1 text-2xl font-semibold text-red-600"><span id="total-outcome">0</span> kg</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Res</p>
+                    <p class="mt-1 text-2xl font-semibold"><span id="res-total">0</span> kg</p>
+                </div>
+                <div class="glass-card p-4 rounded-xl shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Cerdo</p>
+                    <p class="mt-1 text-2xl font-semibold"><span id="cerdo-total">0</span> kg</p>
+                </div>
+            </div>
+
+            <!-- Navegación por Categoría -->
+            <div id="category-nav" class="flex space-x-3 mb-6 overflow-x-auto pb-2">
+                <button data-category="all" class="category-chip px-4 py-2 bg-white text-gray-700 rounded-full shadow-sm text-sm font-medium flex items-center active">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                    Todos
+                </button>
+                <button data-category="Res" class="category-chip px-4 py-2 bg-red-50 text-red-700 rounded-full shadow-sm text-sm font-medium flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    Res
+                </button>
+                <button data-category="Cerdo" class="category-chip px-4 py-2 bg-pink-50 text-pink-700 rounded-full shadow-sm text-sm font-medium flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                    Cerdo
+                </button>
+                <button data-category="Pollo" class="category-chip px-4 py-2 bg-yellow-50 text-yellow-700 rounded-full shadow-sm text-sm font-medium flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Pollo
+                </button>
+                <button data-category="Cordero" class="category-chip px-4 py-2 bg-purple-50 text-purple-700 rounded-full shadow-sm text-sm font-medium flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Cordero
+                </button>
+                <button data-category="Pescado" class="category-chip px-4 py-2 bg-blue-50 text-blue-700 rounded-full shadow-sm text-sm font-medium flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                    Pescado
+                </button>
+                <button data-category="Otro" class="category-chip px-4 py-2 bg-gray-50 text-gray-700 rounded-full shadow-sm text-sm font-medium flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                    </svg>
+                    Otros
+                </button>
+            </div>
+
+            <!-- Grilla de Inventario -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Product cards will be loaded here -->
+                <div id="inventory-grid"></div>
+            </div>
+
+            <!-- Formulario de Movimiento -->
+            <div class="glass-card p-6 rounded-xl shadow-sm mb-8 fade-in">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Registro de Movimientos</h3>
+                <form id="movement-form" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="md:col-span-1">
+                        <label for="movement-type" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                        <select id="movement-type" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="entrada">Entrada</option>
+                            <option value="salida">Salida</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="movement-category" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                        <select id="movement-category" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="Res">Res</option>
+                            <option value="Cerdo">Cerdo</option>
+                            <option value="Pollo">Pollo</option>
+                            <option value="Cordero">Cordero</option>
+                            <option value="Pescado">Pescado</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="movement-meat" class="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+                        <select id="movement-meat" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="" disabled selected>Seleccione</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="movement-quantity" class="block text-sm font-medium text-gray-700 mb-1">Cantidad (kg)</label>
+                        <input type="number" id="movement-quantity" min="0" step="0.1" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                    <div class="md:col-span-1 flex items-end">
+                        <button type="submit" class="w-full px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-md transition-all flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                            </svg>
+                            Registrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Actividad Reciente -->
+            <div class="glass-card p-6 rounded-xl shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Movimientos Recientes</h3>
+                    <button class="text-sm text-red-600 hover:text-red-800 font-medium">Ver todos</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-movements" class="bg-white divide-y divide-gray-200">
+                            <!-- Movements will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modales -->
+    <!-- Modal Nuevo Producto -->
+    <div id="new-meat-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-red-500 to-red-600">
+                <h3 class="text-lg font-semibold text-white">Agregar Nuevo Producto</h3>
+            </div>
+            <div class="p-6">
+                <form id="add-meat-form" class="space-y-4">
+                    <div>
+                        <label for="meat-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Producto</label>
+                        <input type="text" id="meat-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="meat-type" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                        <select id="meat-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <option value="Res">Res</option>
+                            <option value="Cerdo">Cerdo</option>
+                            <option value="Pollo">Pollo</option>
+                            <option value="Cordero">Cordero</option>
+                            <option value="Pescado">Pescado</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="initial-quantity" class="block text-sm font-medium text-gray-700 mb-1">Cantidad Inicial (kg)</label>
+                        <input type="number" id="initial-quantity" min="0" step="0.1" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" id="cancel-new-meat" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-200">Cancelar</button>
+                        <button type="submit" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-md transition-all">Agregar Producto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificación -->
+    <div id="notification" class="notification hidden">
+        <div class="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span id="notification-message">Operación realizada con éxito</span>
+            <button id="close-notification" class="ml-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let inventory = JSON.parse(localStorage.getItem('meatInventory')) || [];
+        let movements = JSON.parse(localStorage.getItem('meatMovements')) || [];
+
+        // Elementos del DOM
+        const inventoryGrid = document.getElementById('inventory-grid');
+        const recentMovements = document.getElementById('recent-movements');
+        const addMeatForm = document.getElementById('add-meat-form');
+        const movementForm = document.getElementById('movement-form');
+        const movementMeatSelect = document.getElementById('movement-meat');
+        const movementCategorySelect = document.getElementById('movement-category');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        const closeNotification = document.getElementById('close-notification');
+        const newMeatBtn = document.getElementById('new-meat-btn');
+        const newMeatModal = document.getElementById('new-meat-modal');
+        const cancelNewMeat = document.getElementById('cancel-new-meat');
+        const totalStockElement = document.getElementById('total-stock');
+        const totalProductsElement = document.getElementById('total-products');
+        const totalIncomeElement = document.getElementById('total-income');
+        const totalOutcomeElement = document.getElementById('total-outcome');
+        const resTotalElement = document.getElementById('res-total');
+        const cerdoTotalElement = document.getElementById('cerdo-total');
+        const categoryButtons = document.querySelectorAll('[data-category]');
+
+        // Funciones auxiliares
+        function showNotification(message, isError = false) {
+            notificationMessage.textContent = message;
+            notification.classList.remove('hidden');
+            notification.firstElementChild.className = isError 
+                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center' 
+                : 'bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center';
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+            return new Date(dateString).toLocaleDateString('es-ES', options);
+        }
+
+        function updateMovementMeatSelect(category = null) {
+            movementMeatSelect.innerHTML = '<option value="" disabled selected>Seleccione</option>';
+            
+            const meatsToShow = category 
+                ? inventory.filter(item => item.type === category)
+                : inventory;
+            
+            meatsToShow.forEach(meat => {
+                const option = document.createElement('option');
+                option.value = meat.id;
+                option.textContent = `${meat.name} (${meat.quantity.toFixed(2)} kg)`;
+                movementMeatSelect.appendChild(option);
+            });
+        }
+
+        function calculateStats() {
+            // Total stock and products
+            const totalStock = inventory.reduce((sum, item) => sum + item.quantity, 0);
+            totalStockElement.textContent = totalStock.toFixed(2);
+            totalProductsElement.textContent = inventory.length;
+            
+            // Total income and outcome (last 7 days)
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            
+            const recentMovements = movements.filter(movement => 
+                new Date(movement.date) >= sevenDaysAgo
+            );
+            
+            const totalIncome = recentMovements
+                .filter(m => m.type === 'entrada')
+                .reduce((sum, m) => sum + m.quantity, 0);
+            
+            const totalOutcome = recentMovements
+                .filter(m => m.type === 'salida')
+                .reduce((sum, m) => sum + m.quantity, 0);
+            
+            totalIncomeElement.textContent = totalIncome.toFixed(2);
+            totalOutcomeElement.textContent = totalOutcome.toFixed(2);
+            
+            // Category totals
+            const resTotal = inventory
+                .filter(item => item.type === 'Res')
+                .reduce((sum, item) => sum + item.quantity, 0);
+            
+            const cerdoTotal = inventory
+                .filter(item => item.type === 'Cerdo')
+                .reduce((sum, item) => sum + item.quantity, 0);
+            
+            resTotalElement.textContent = resTotal.toFixed(2);
+            cerdoTotalElement.textContent = cerdoTotal.toFixed(2);
+        }
+
+        function renderInventoryGrid(category = 'all') {
+            inventoryGrid.innerHTML = '';
+            
+            const meatsToShow = category === 'all' 
+                ? inventory 
+                : inventory.filter(item => item.type === category);
+            
+            if (meatsToShow.length === 0) {
+                inventoryGrid.innerHTML = `
+                    <div class="md:col-span-3 py-12 text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="mt-2 text-lg font-medium text-gray-900">No hay productos</h3>
+                        <p class="mt-1 text-gray-500">${category === 'all' ? 'El inventario está vacío' : 'No hay productos en esta categoría'}</p>
+                        <div class="mt-6">
+                            <button id="empty-state-new-meat" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-md transition-all inline-flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                                </svg>
+                                Agregar Producto
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('empty-state-new-meat').addEventListener('click', () => {
+                    newMeatModal.classList.remove('hidden');
+                });
+                
+                return;
+            }
+            
+            meatsToShow.forEach(meat => {
+                const meatCard = document.createElement('div');
+                meatCard.className = `meat-card bg-white rounded-xl shadow-sm overflow-hidden ${meat.type.toLowerCase()} fade-in`;
+                
+                // Get recent movements for this meat
+                const meatMovements = movements
+                    .filter(m => m.meatId === meat.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 2);
+                
+                meatCard.innerHTML = `
+                    <div class="p-5">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">${meat.name}</h3>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${meat.type === 'Res' ? 'red' : meat.type === 'Cerdo' ? 'pink' : meat.type === 'Pollo' ? 'yellow' : meat.type === 'Cordero' ? 'purple' : meat.type === 'Pescado' ? 'blue' : 'gray'}-100 text-${meat.type === 'Res' ? 'red' : meat.type === 'Cerdo' ? 'pink' : meat.type === 'Pollo' ? 'yellow' : meat.type === 'Cordero' ? 'purple' : meat.type === 'Pescado' ? 'blue' : 'gray'}-800">
+                                    ${meat.type}
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold">${meat.quantity.toFixed(2)} <span class="text-sm font-normal text-gray-500">kg</span></p>
+                                <p class="text-xs text-gray-500">Actualizado: ${formatDate(meat.updatedAt)}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="flex justify-between text-sm text-gray-500 mb-1">
+                                <span>Movimientos recientes:</span>
+                            </div>
+                            <div class="space-y-2">
+                                ${
+                                    meatMovements.length > 0
+                                    ? meatMovements.map(movement => `
+                                        <div class="flex justify-between text-sm ${movement.type === 'entrada' ? 'text-green-600' : 'text-red-600'}">
+                                            <span>${movement.type === 'entrada' ? 'Entrada' : 'Salida'}</span>
+                                            <span>${movement.type === 'entrada' ? '+' : '-'}${movement.quantity.toFixed(2)} kg</span>
+                                        </div>
+                                    `).join('')
+                                    : '<p class="text-sm text-gray-400 text-center">Sin movimientos recientes</p>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-5 py-3 flex justify-end space-x-3 border-t border-gray-200">
+                        <button data-id="${meat.id}" class="delete-btn px-3 py-1 text-sm bg-white text-red-600 rounded-lg border border-red-200 hover:bg-red-50 transition flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            Eliminar
+                        </button>
+                    </div>
+                `;
+                
+                inventoryGrid.appendChild(meatCard);
+                
+                // Add event listener to delete button
+                meatCard.querySelector('.delete-btn').addEventListener('click', (e) => {
+                    const meatId = e.target.getAttribute('data-id');
+                    const meat = inventory.find(item => item.id === meatId);
+                    
+                    if (confirm(`¿Estás seguro de eliminar "${meat.name}" del inventario?`)) {
+                        // Remove related movements
+                        movements = movements.filter(movement => movement.meatId !== meatId);
+                        
+                        // Remove from inventory
+                        inventory = inventory.filter(item => item.id !== meatId);
+                        
+                        saveData();
+                        loadData();
+                        
+                        showNotification(`"${meat.name}" eliminado del inventario`);
+                    }
+                });
+            });
+        }
+
+        function renderRecentMovements() {
+            recentMovements.innerHTML = '';
+            
+            if (movements.length === 0) {
+                recentMovements.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No hay movimientos registrados
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Show last 5 movements
+            const lastMovements = [...movements].reverse().slice(0, 5);
+            
+            lastMovements.forEach(movement => {
+                const row = document.createElement('tr');
+                row.className = 'fade-in';
+                
+                const meat = inventory.find(item => item.id === movement.meatId) || { name: 'Producto eliminado', type: 'N/A' };
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${formatDate(movement.date)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${meat.name}</div>
+                        <div class="text-sm text-gray-500">${meat.type}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${movement.type === 'entrada' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${movement.type === 'entrada' ? 'Entrada' : 'Salida'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${movement.type === 'entrada' ? 'text-green-600' : 'text-red-600'}">
+                        ${movement.type === 'entrada' ? '+' : '-'}${movement.quantity.toFixed(2)} kg
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${meat.quantity ? meat.quantity.toFixed(2) + ' kg' : 'N/A'}
+                    </td>
+                `;
+                
+                recentMovements.appendChild(row);
+            });
+        }
+
+        function saveData() {
+            localStorage.setItem('meatInventory', JSON.stringify(inventory));
+            localStorage.setItem('meatMovements', JSON.stringify(movements));
+        }
+
+        function loadData() {
+            updateMovementMeatSelect();
+            renderInventoryGrid();
+            renderRecentMovements();
+            calculateStats();
+        }
+
+        // Event Listeners
+        addMeatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('meat-name').value.trim();
+            const type = document.getElementById('meat-type').value;
+            const quantity = parseFloat(document.getElementById('initial-quantity').value);
+            
+            if (inventory.some(item => item.name.toLowerCase() === name.toLowerCase())) {
+                showNotification('¡Error! Ya existe un producto con ese nombre.', true);
+                return;
+            }
+            
+            const newMeat = {
+                id: Date.now().toString(),
+                name,
+                type,
+                quantity,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            inventory.push(newMeat);
+            
+            // Registrar movimiento inicial
+            const newMovement = {
+                id: Date.now().toString(),
+                meatId: newMeat.id,
+                meatName: newMeat.name,
+                meatType: newMeat.type,
+                type: 'entrada',
+                quantity: newMeat.quantity,
+                notes: 'Entrada inicial',
+                date: new Date().toISOString()
+            };
+            
+            movements.push(newMovement);
+            
+            saveData();
+            loadData();
+            
+            document.getElementById('meat-name').value = '';
+            document.getElementById('initial-quantity').value = '';
+            
+            newMeatModal.classList.add('hidden');
+            showNotification(`"${name}" agregado al inventario con ${quantity} kg`);
+        });
+
+        movementForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const meatId = document.getElementById('movement-meat').value;
+            const type = document.getElementById('movement-type').value;
+            const quantity = parseFloat(document.getElementById('movement-quantity').value);
+            
+            if (!meatId) {
+                showNotification('¡Error! Debes seleccionar un producto.', true);
+                return;
+            }
+            
+            const meatIndex = inventory.findIndex(item => item.id === meatId);
+            const meat = inventory[meatIndex];
+            
+            if (type === 'salida' && meat.quantity < quantity) {
+                showNotification(`¡Error! No hay suficiente stock de "${meat.name}". Stock actual: ${meat.quantity} kg`, true);
+                return;
+            }
+            
+            // Actualizar inventario
+            meat.quantity = type === 'entrada' 
+                ? meat.quantity + quantity 
+                : meat.quantity - quantity;
+            
+            meat.updatedAt = new Date().toISOString();
+            
+            // Registrar movimiento
+            const newMovement = {
+                id: Date.now().toString(),
+                meatId: meat.id,
+                meatName: meat.name,
+                meatType: meat.type,
+                type,
+                quantity,
+                notes: null,
+                date: new Date().toISOString()
+            };
+            
+            movements.push(newMovement);
+            
+            saveData();
+            loadData();
+            
+            document.getElementById('movement-quantity').value = '';
+            
+            showNotification(`Movimiento registrado: ${type === 'entrada' ? 'Entrada' : 'Salida'} de ${quantity} kg de "${meat.name}"`);
+        });
+
+        movementCategorySelect.addEventListener('change', (e) => {
+            updateMovementMeatSelect(e.target.value);
+        });
+
+        newMeatBtn.addEventListener('click', () => {
+            newMeatModal.classList.remove('hidden');
+        });
+
+        cancelNewMeat.addEventListener('click', () => {
+            newMeatModal.classList.add('hidden');
+        });
+
+        closeNotification.addEventListener('click', () => {
+            notification.classList.add('hidden');
+        });
+
+        // Asignar eventos a los botones de categoría después de cargar el DOM
+        function addCategoryButtonListeners() {
+            const categoryButtons = document.querySelectorAll('[data-category]');
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    categoryButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderInventoryGrid(button.getAttribute('data-category'));
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            addCategoryButtonListeners();
+        });
+    </script>
+</body>
+</html>
